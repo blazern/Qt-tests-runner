@@ -1,5 +1,7 @@
-qt-tests-runner
+Qt-tests-runner
 ==============
+
+To run the script you need to have a Python interpreter installed on your system.
 
 The script works with compiled Qt-tests located in a specified directory and all its subdirectories.
 It's designed for excluding manual execution of tests one by one with searching for fails in the output.
