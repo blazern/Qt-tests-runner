@@ -7,7 +7,7 @@ from TestingData import *
 
 argv = sys.argv
 default_regex = "tst_.*Test$"
-input_format = "(--help | (--all | --fails) directory [regex])"
+input_format = "(--help | directory (--all | --fails) [regex])"
 
 def my_print(str):
 	print "# " + str.replace("\n", "\n# ")
@@ -21,17 +21,22 @@ def is_executable(fpath):
 	return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
 if len(argv) == 2 and argv[1] == "--help":
-	my_print("The script works with compiled Qt-tests located in a specified")
-	my_print("directory and all its subdirectories.")
-	my_print("It's designed for exluding manual execution of tests one by one")
-	my_print("with searching for fails in the output.")
+	my_print("The script works with compiled Qt-tests located in a specified \
+directory and all its subdirectories.")
+	my_print("It's designed for excluding manual execution of tests one by one \
+with searching for fails in the output.")
 	my_print("Note that you still have to manually build all the tests.")
 	my_print("")
-	my_print("By default script runs all executables that match next regex: %s" % default_regex)
-	my_print("But you can specify any other regular expression.")
+	my_print("The script runs all executables that match given regular expression.")
+	my_print("If no regular expression is given then the script uses the default one: %s" % default_regex)
 	my_print("")
-	my_print("The input must match next pattern:")
+	my_print("Your input must match next pattern:")
 	my_print(input_format)
+	my_print("")
+	my_print("Also note that if the executables need some libraries to be added to \
+your system's path variable, you would need to add them manually.")
+	my_print("To do that on Linux execute: \"export PATH=$PATH:path/to/needed/libraries\".")
+	my_print("To do that on Windows execute: \"set Path=%Path%;path/to/needed/libraries\".")
 	exit()
 elif len(argv) < 3:
 	show_bad_input_message("Too few arguments.")
@@ -39,15 +44,15 @@ elif len(argv) < 3:
 elif len(argv) > 4:
 	show_bad_input_message("Too many arguments.")
 	exit()
-elif argv[1] != "--all" and argv[1] != "--fails":
-	show_bad_input_message("First argument is invalid: %s." % argv[1])
+elif argv[2] != "--all" and argv[2] != "--fails":
+	show_bad_input_message("Displayed-info argument is invalid: %s." % argv[2])
 	exit()
-elif os.path.isdir(argv[2]) == False:
-	show_bad_input_message("Given path is not a directory: %s." % argv[2])
+elif os.path.isdir(argv[1]) == False:
+	show_bad_input_message("Given path is not a directory: %s." % argv[1])
 	exit()
 
-displayed_info = argv[1]
-directory = argv[2]
+directory = argv[1]
+displayed_info = argv[2]
 regex = argv[3] if len(argv) == 4 else default_regex
 
 testing_data = TestingData()
@@ -68,12 +73,16 @@ for root, dirs, files in os.walk(directory):
 if testing_data.is_empty == False:
 	my_print("Executed %s group(s) of tests" % testing_data.executables_count)
 	my_print("%s test(s) passed and %s test(s) failed." % (len(testing_data.passes), len(testing_data.fails)))
-	my_print("Details:\n")
 	if displayed_info == "--all":
-		my_print(testing_data.entire_output)
+		entire_output = testing_data.entire_output
+		if len(entire_output) > 0:
+			my_print("Details:\n")
+			my_print(testing_data.entire_output)
 	else:
 		fails = testing_data.fails
-		for fail in fails:
-			my_print(fail.message)
+		if len(fails) > 0:
+			my_print("Details:\n")
+			for fail in fails:
+				my_print(fail.message)
 else:
 	show_bad_input_message("No tests are executed.\nDid you specify right directory and regular expression?")
